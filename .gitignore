@@ -34,6 +34,7 @@ test-results/
 
 # Local data and backups
 postgres_data/
+backups/
 *.sql
 *.dump
 *.backup

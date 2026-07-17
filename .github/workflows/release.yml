@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build deploy artifact
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME:-manual}"
+          artifact="clinic-system-deploy-${version}.zip"
+          mkdir -p release/clinic-system-deploy
+          rsync -a \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".env" \
+            --exclude ".env.production" \
+            --exclude "backups" \
+            --exclude "release" \
+            --exclude "frontend/.next" \
+            --exclude "frontend/node_modules" \
+            --exclude "backend/.pytest_cache" \
+            ./ release/clinic-system-deploy/
+          chmod +x release/clinic-system-deploy/install.sh release/clinic-system-deploy/deploy/*.sh
+          (cd release && zip -r "$artifact" clinic-system-deploy)
+          (cd release && sha256sum "$artifact" > checksums.txt)
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/clinic-system-deploy-*.zip
+            release/checksums.txt
