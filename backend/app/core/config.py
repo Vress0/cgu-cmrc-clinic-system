@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 14
     DEFAULT_ADMIN_USERNAME: str = "admin"
     DEFAULT_ADMIN_EMAIL: str = "admin@example.com"
+    DEFAULT_ADMIN_FULL_NAME: str = "System Administrator"
     DEFAULT_ADMIN_PASSWORD: str = "ChangeMe123!"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

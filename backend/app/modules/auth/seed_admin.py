@@ -7,18 +7,18 @@ from app.modules.roles.models import Permission, Role
 from app.modules.users.models import User
 
 DEFAULT_PERMISSIONS = [
-    ("users:manage", "管理帳號"),
-    ("roles:manage", "管理角色與權限"),
-    ("sessions:manage", "管理義診場次"),
-    ("patients:read", "查看個案資料"),
-    ("patients:write", "新增或修改個案資料"),
-    ("visits:manage", "管理掛號與流程狀態"),
-    ("clinic:write", "填寫診間資料"),
-    ("prescriptions:confirm", "確認用藥單"),
-    ("pharmacy:dispense", "調劑、核對與發藥"),
-    ("inventory:manage", "管理藥品庫存"),
-    ("audit_logs:read", "查看稽核紀錄"),
-    ("exports:anonymous", "匯出匿名統計資料"),
+    ("users:manage", "Manage users"),
+    ("roles:manage", "Manage roles and permissions"),
+    ("sessions:manage", "Manage clinic sessions"),
+    ("patients:read", "Read patient records"),
+    ("patients:write", "Write patient records"),
+    ("visits:manage", "Manage registration visits"),
+    ("clinic:write", "Write clinic records"),
+    ("prescriptions:confirm", "Confirm prescriptions"),
+    ("pharmacy:dispense", "Dispense medication"),
+    ("inventory:manage", "Manage inventory"),
+    ("audit_logs:read", "Read audit logs"),
+    ("exports:anonymous", "Export anonymized reports"),
 ]
 
 
@@ -31,22 +31,24 @@ def seed_admin() -> None:
             if permission is None:
                 permission = Permission(code=code, description=description)
                 db.add(permission)
+            else:
+                permission.description = description
             permissions.append(permission)
 
         admin_role = db.execute(select(Role).where(Role.name == "admin")).scalar_one_or_none()
         if admin_role is None:
-            admin_role = Role(name="admin", description="系統管理員")
+            admin_role = Role(name="admin", description="System administrator")
             db.add(admin_role)
+        else:
+            admin_role.description = "System administrator"
         admin_role.permissions = permissions
 
-        admin = db.execute(
-            select(User).where(User.username == settings.DEFAULT_ADMIN_USERNAME)
-        ).scalar_one_or_none()
+        admin = db.execute(select(User).where(User.username == settings.DEFAULT_ADMIN_USERNAME)).scalar_one_or_none()
         if admin is None:
             admin = User(
                 username=settings.DEFAULT_ADMIN_USERNAME,
                 email=settings.DEFAULT_ADMIN_EMAIL,
-                full_name="系統管理員",
+                full_name=settings.DEFAULT_ADMIN_FULL_NAME,
                 password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
                 is_active=True,
                 roles=[admin_role],

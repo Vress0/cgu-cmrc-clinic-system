@@ -65,8 +65,8 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
           <AuthStatus />
         </div>
       </aside>
-      <main className="px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">{children}</div>
+      <main className="min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl min-w-0">{children}</div>
       </main>
     </div>
   );
