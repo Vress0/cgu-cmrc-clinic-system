@@ -23,6 +23,13 @@ class ConsentCreate(BaseModel):
 class ConsentRead(ConsentCreate):
     id: UUID
     patient_id: UUID
+    consented_by: UUID | None = None
     withdrawn_at: datetime | None
+    research_withdrawn_at: datetime | None = None
+    withdrawn_by: UUID | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ConsentWithdraw(BaseModel):
+    notes: str = ""

@@ -1,16 +1,30 @@
 import Link from "next/link";
-import { Activity, CalendarDays, ClipboardList, Home, Pill, Settings, Users } from "lucide-react";
+import {
+  Activity,
+  CalendarDays,
+  ClipboardList,
+  FileSearch,
+  Home,
+  PackageSearch,
+  Pill,
+  Settings,
+  UserCog,
+  Users
+} from "lucide-react";
 
 import { AuthStatus } from "@/components/auth-status";
 
 const navItems = [
-  { href: "/dashboard", label: "總覽", icon: Home },
-  { href: "/sessions", label: "場次", icon: CalendarDays },
+  { href: "/dashboard", label: "儀表板", icon: Home },
+  { href: "/sessions", label: "義診場次", icon: CalendarDays },
   { href: "/registration", label: "掛號", icon: ClipboardList },
-  { href: "/patients", label: "個案", icon: Users },
+  { href: "/patients", label: "病人資料", icon: Users },
   { href: "/clinic", label: "診間", icon: Activity },
-  { href: "/medications", label: "藥品", icon: Pill },
   { href: "/pharmacy", label: "藥局", icon: Pill },
+  { href: "/medications", label: "藥品", icon: Pill },
+  { href: "/inventory", label: "庫存", icon: PackageSearch },
+  { href: "/users", label: "使用者", icon: UserCog },
+  { href: "/audit-logs", label: "稽核紀錄", icon: FileSearch },
   { href: "/settings", label: "設定", icon: Settings }
 ];
 
@@ -21,7 +35,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         <div className="relative z-10 px-6 py-6">
           <div className="mb-4 flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-md bg-cinnabar font-serif text-xl font-black text-white shadow-soft">
-              義
+              醫
             </div>
             <div>
               <p className="text-sm font-bold tracking-wide text-brand">CGU CMRC</p>
@@ -29,7 +43,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             </div>
           </div>
           <p className="rounded-md border border-line bg-paper/70 px-3 py-2 text-sm leading-6 text-muted">
-            掛號、診間、藥局流程整合管理
+            掛號、診間、藥局、庫存與稽核流程整合工作台
           </p>
         </div>
         <nav className="relative z-10 flex gap-2 overflow-x-auto px-3 pb-4 lg:block lg:space-y-1 lg:overflow-visible">

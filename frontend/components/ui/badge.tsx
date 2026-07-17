@@ -33,26 +33,29 @@ export function Badge({
 export function StatusTag({ status }: Readonly<{ status: string }>) {
   const labels: Record<string, string> = {
     REGISTERED: "已掛號",
-    WAITING_FOR_CLINIC: "候診",
+    WAITING_FOR_CLINIC: "候診中",
     IN_CONSULTATION: "看診中",
     WAITING_FOR_PHARMACY: "待藥局",
     DISPENSING: "調劑中",
-    WAITING_FOR_PICKUP: "待領藥",
-    COMPLETED: "完成",
-    CANCELLED: "取消",
+    WAITING_FOR_VERIFICATION: "待核對",
+    VERIFIED: "已核對",
+    WAITING_FOR_PICKUP: "待發藥",
+    DISPENSED: "已發藥",
+    COMPLETED: "已完成",
+    CANCELLED: "已取消",
     ACTIVE: "進行中",
     DRAFT: "草稿",
     ENDED: "已結束",
-    ARCHIVED: "封存"
+    ARCHIVED: "已封存"
   };
   const tone =
-    status === "COMPLETED" || status === "ACTIVE"
+    status === "COMPLETED" || status === "ACTIVE" || status === "DISPENSED" || status === "VERIFIED"
       ? "success"
       : status === "CANCELLED"
         ? "danger"
         : status.includes("WAITING")
           ? "warning"
-          : status === "IN_CONSULTATION"
+          : status === "IN_CONSULTATION" || status === "DISPENSING"
             ? "info"
             : "default";
   return <Badge tone={tone}>{labels[status] ?? status}</Badge>;

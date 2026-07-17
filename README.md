@@ -1,47 +1,30 @@
-# 長庚大學中國醫學研究社義診健康紀錄系統
+# 長庚大學中國醫學研究社義診健康紀錄與流程管理系統
 
-義診健康紀錄與流程管理系統。第一版採前後端分離與模組化單體架構：Next.js、FastAPI、PostgreSQL、Docker Compose 與 Nginx。
+這是一套以 Next.js、FastAPI、PostgreSQL、Docker Compose 與 Nginx 建立的義診流程系統。系統支援掛號組、診間組、藥局組與管理者的現場工作流程，並逐步加入處方、調劑、庫存、個資同意、使用者管理與稽核功能。
 
-## Phase 1 內容
+## 目前狀態
 
-- 10 項設計文件：`docs/`
-- FastAPI 後端骨架：`backend/`
-- Next.js 前端骨架與指定路由 placeholder：`frontend/`
-- PostgreSQL 與 Docker Compose：`docker-compose.yml`
-- Nginx 反向代理設定：`nginx/nginx.conf`
-- 環境變數範本：`.env.example`
-- 健康檢查 API：`GET /api/v1/health`
-- 後端健康檢查測試：`backend/tests/test_health.py`
+- Phase 1-3 已完成 MVP、處方藥局流程、庫存批次、FEFO 與發藥扣庫存。
+- Phase 4 已加入個資同意撤回、病人詳細健康史、使用者管理、dashboard 統計、稽核查詢與完整驗收測試。
+- 目前開發分支：`feat/system-administration`。
 
-## Phase 2 內容
+## 主要路由
 
-- User、Role、Permission、RefreshToken 資料模型
-- Auth/RBAC migration：`backend/alembic/versions/202607170002_auth_rbac.py`
-- JWT Access Token 與 Refresh Token rotation
-- Argon2 密碼雜湊
-- 登入失敗計數與暫時鎖定
-- 預設管理員 seed：`python -m app.modules.auth.seed_admin`
-- Auth API：`POST /api/v1/auth/login`、`POST /api/v1/auth/refresh`、`POST /api/v1/auth/logout`、`GET /api/v1/auth/me`
-- 前端登入頁串接與登出
-- Auth 測試：`backend/tests/test_auth.py`
+- `/login`：登入
+- `/dashboard`：現場營運儀表板
+- `/sessions`：義診場次
+- `/registration`：掛號工作台
+- `/patients`、`/patients/[id]`：病人清單、健康史與個資同意
+- `/clinic`、`/clinic/[visitId]`：診間佇列與看診紀錄
+- `/pharmacy`、`/pharmacy/[visitId]`：藥局調劑、核對與發藥
+- `/medications`：藥品主檔
+- `/inventory`：庫存批次與異動
+- `/users`：使用者與角色管理
+- `/audit-logs`：稽核紀錄查詢
 
-## Phase 3 內容
+## Docker 執行
 
-- ClinicSession、Patient、HealthHistory、Consent、Visit、QueueRecord 資料模型
-- Registration migration：`backend/alembic/versions/202607170003_registration.py`
-- RBAC 保護的場次、個案、健康背景、同意紀錄與掛號 API
-- 同一個個案在同一場次不可重複掛號
-- 候診號碼自動依場次遞增
-- Visit 狀態機基礎驗證
-- 前端最小可用頁面：
-  - `/sessions` 建立與查看義診場次
-  - `/patients` 建立與搜尋個案
-  - `/registration` 建立掛號並顯示候診號碼
-- 掛號流程測試：`backend/tests/test_registration.py`
-
-## 啟動方式
-
-1. 建立環境變數：
+1. 建立環境檔：
 
 ```powershell
 Copy-Item .env.example .env
@@ -53,39 +36,40 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-3. 開啟服務：
+3. 開啟：
 
-- 前端：http://localhost:3000
-- 後端健康檢查：http://localhost:8000/api/v1/health
-- Nginx 入口：http://localhost
+- Frontend: http://localhost:3000
+- Backend health: http://localhost:8081/api/v1/health
+- Nginx: http://localhost:8080
 
-Docker 啟動後，後端容器會自動執行 migration 並建立預設管理員：
+預設管理員會由 backend 啟動流程建立：
 
 - 帳號：`admin`
 - 密碼：`ChangeMe123!`
 
-正式或共享環境必須先修改 `.env` 中的 `SECRET_KEY` 與 `DEFAULT_ADMIN_PASSWORD`。
+正式環境請務必修改 `.env` 的 `SECRET_KEY` 與 `DEFAULT_ADMIN_PASSWORD`。
 
-Phase 3 操作順序：
+## 本機驗證
 
-1. 用預設管理員登入 `/login`。
-2. 到 `/sessions` 建立一筆義診場次。
-3. 到 `/patients` 建立一筆個案。
-4. 到 `/registration` 選擇場次與個案建立掛號。
-
-## 本機後端測試
+後端：
 
 ```powershell
 cd backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
 pytest
 ```
 
-## 本機資料庫初始化
+前端：
 
-若使用本機 PostgreSQL，設定 `.env` 後執行：
+```powershell
+cd frontend
+npm install
+npm run lint
+npm run typecheck
+npm run build
+```
+
+資料庫 migration：
 
 ```powershell
 cd backend
@@ -93,33 +77,26 @@ alembic upgrade head
 python -m app.modules.auth.seed_admin
 ```
 
-## 本機前端檢查
+## Phase 4 驗收重點
 
-```powershell
-cd frontend
-npm install
-npm run typecheck
-npm run build
-```
+- 個資與服務同意可新增，研究同意可單獨撤回並寫入稽核。
+- 管理員可建立使用者、調整角色、停用/啟用帳號、解除鎖定與重設密碼。
+- Dashboard 顯示掛號、候診、看診、藥局、完成、場次、病人、藥品與庫存警示統計。
+- 稽核頁可依操作、資料類型、關鍵字與筆數查詢。
+- 病人詳細頁集中管理基本資料、健康史、過敏、慢性病、特殊協助與同意紀錄。
 
-## 設計文件
+## 文件
 
-- [專案需求分析](docs/01-requirements-analysis.md)
-- [系統架構圖](docs/02-system-architecture.md)
-- [使用者流程圖](docs/03-user-flows.md)
-- [ERD 與資料表設計](docs/04-erd-and-tables.md)
+- [需求分析](docs/01-requirements-analysis.md)
+- [系統架構](docs/02-system-architecture.md)
+- [使用流程](docs/03-user-flows.md)
+- [ERD 與資料表](docs/04-erd-and-tables.md)
 - [API 規格](docs/05-api-spec.md)
-- [頁面與元件架構](docs/06-frontend-architecture.md)
+- [前端架構](docs/06-frontend-architecture.md)
 - [權限矩陣](docs/07-permission-matrix.md)
-- [狀態機設計](docs/08-state-machine.md)
-- [MVP 開發排程](docs/09-mvp-roadmap.md)
-- [完整目錄結構](docs/10-directory-structure.md)
-
-## Phase 4 預計內容
-
-- 候診列表
-- VitalSign
-- Consultation
-- TreatmentOrder
-- 診間工作台
-- 狀態轉換驗證擴充
+- [狀態機](docs/08-state-machine.md)
+- [MVP 路線圖](docs/09-mvp-roadmap.md)
+- [目錄結構](docs/10-directory-structure.md)
+- [個資同意與隱私](docs/11-privacy-consent.md)
+- [安全與稽核](docs/12-security-audit.md)
+- [Phase 4 驗收清單](docs/13-phase4-acceptance.md)

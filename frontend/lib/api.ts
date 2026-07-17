@@ -371,6 +371,87 @@ export type PharmacyVisitDetail = {
   dispensing: DispensingRecord | null;
 };
 
+export type HealthHistory = {
+  id: string;
+  patient_id: string;
+  chronic_diseases: string;
+  allergies: string;
+  current_medications: string;
+  surgery_history: string;
+  fall_history: string;
+  smoking_status: string;
+  alcohol_status: string;
+  sleep_status: string;
+  diet_status: string;
+  notes: string;
+};
+
+export type Consent = {
+  id: string;
+  patient_id: string;
+  version: string;
+  method: string;
+  consented_at: string;
+  staff_name: string;
+  service_consent: boolean;
+  research_consent: boolean;
+  notes: string;
+  consented_by: string | null;
+  withdrawn_at: string | null;
+  research_withdrawn_at: string | null;
+  withdrawn_by: string | null;
+};
+
+export type Role = {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+};
+
+export type ManagedUser = {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  failed_login_count: number;
+  locked_until: string | null;
+  last_login_at: string | null;
+  roles: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type AuditLog = {
+  id: string;
+  actor_user_id: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  summary: string;
+  created_at: string;
+};
+
+export type DashboardSummary = {
+  registered: number;
+  waiting_for_clinic: number;
+  in_consultation: number;
+  waiting_for_pharmacy: number;
+  dispensing: number;
+  waiting_for_verification: number;
+  waiting_for_pickup: number;
+  completed: number;
+  cancelled: number;
+  active_sessions: number;
+  patient_count: number;
+  medication_count: number;
+  inventory_available: string;
+  low_stock_count: number;
+  expiring_count: number;
+  expired_count: number;
+};
+
 export function getApiBaseUrl(): string {
   if (typeof window === "undefined") {
     return process.env.INTERNAL_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://backend:8000/api/v1";
@@ -443,6 +524,21 @@ export function listPatients(accessToken: string, query = ""): Promise<Patient[]
   return authenticatedFetch<Patient[]>(`/patients${suffix}`, accessToken);
 }
 
+export function getPatient(accessToken: string, patientId: string): Promise<Patient> {
+  return authenticatedFetch<Patient>(`/patients/${patientId}`, accessToken);
+}
+
+export function updatePatient(
+  accessToken: string,
+  patientId: string,
+  payload: Partial<Omit<Patient, "id">>
+): Promise<Patient> {
+  return authenticatedFetch<Patient>(`/patients/${patientId}`, accessToken, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
 export function createPatient(
   accessToken: string,
   payload: Omit<Patient, "id" | "is_active">
@@ -460,6 +556,56 @@ export function createVisit(
   return authenticatedFetch<Visit>("/visits", accessToken, {
     method: "POST",
     body: JSON.stringify(payload)
+  });
+}
+
+export function getHealthHistory(accessToken: string, patientId: string): Promise<HealthHistory> {
+  return authenticatedFetch<HealthHistory>(`/patients/${patientId}/health-history`, accessToken);
+}
+
+export function upsertHealthHistory(
+  accessToken: string,
+  patientId: string,
+  payload: Omit<HealthHistory, "id" | "patient_id">
+): Promise<HealthHistory> {
+  return authenticatedFetch<HealthHistory>(`/patients/${patientId}/health-history`, accessToken, {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function listPatientConsents(accessToken: string, patientId: string): Promise<Consent[]> {
+  return authenticatedFetch<Consent[]>(`/patients/${patientId}/consents`, accessToken);
+}
+
+export function createPatientConsent(
+  accessToken: string,
+  patientId: string,
+  payload: {
+    version: string;
+    method: string;
+    consented_at: string;
+    staff_name: string;
+    service_consent: boolean;
+    research_consent?: boolean;
+    notes?: string;
+  }
+): Promise<Consent> {
+  return authenticatedFetch<Consent>(`/patients/${patientId}/consents`, accessToken, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function withdrawResearchConsent(
+  accessToken: string,
+  patientId: string,
+  consentId: string,
+  notes = ""
+): Promise<Consent> {
+  return authenticatedFetch<Consent>(`/patients/${patientId}/consents/${consentId}/withdraw-research`, accessToken, {
+    method: "POST",
+    body: JSON.stringify({ notes })
   });
 }
 
@@ -752,4 +898,64 @@ export function listInventoryTransactions(accessToken: string, medicationId = ""
 
 export function listAvailableBatches(accessToken: string, medicationId: string): Promise<InventoryBatch[]> {
   return authenticatedFetch<InventoryBatch[]>(`/medications/${medicationId}/available-batches`, accessToken);
+}
+
+export function getDashboardSummary(accessToken: string): Promise<DashboardSummary> {
+  return authenticatedFetch<DashboardSummary>("/dashboard/summary", accessToken);
+}
+
+export function listRoles(accessToken: string): Promise<Role[]> {
+  return authenticatedFetch<Role[]>("/roles", accessToken);
+}
+
+export function listUsers(accessToken: string): Promise<ManagedUser[]> {
+  return authenticatedFetch<ManagedUser[]>("/users", accessToken);
+}
+
+export function createUser(
+  accessToken: string,
+  payload: {
+    username: string;
+    email: string;
+    full_name: string;
+    password: string;
+    roles: string[];
+    is_active?: boolean;
+  }
+): Promise<ManagedUser> {
+  return authenticatedFetch<ManagedUser>("/users", accessToken, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateUser(
+  accessToken: string,
+  userId: string,
+  payload: { email?: string; full_name?: string; roles?: string[]; is_active?: boolean; unlock?: boolean }
+): Promise<ManagedUser> {
+  return authenticatedFetch<ManagedUser>(`/users/${userId}`, accessToken, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function resetUserPassword(accessToken: string, userId: string, password: string): Promise<ManagedUser> {
+  return authenticatedFetch<ManagedUser>(`/users/${userId}/reset-password`, accessToken, {
+    method: "POST",
+    body: JSON.stringify({ password })
+  });
+}
+
+export function listAuditLogs(
+  accessToken: string,
+  filters: { action?: string; entity_type?: string; q?: string; limit?: number } = {}
+): Promise<AuditLog[]> {
+  const params = new URLSearchParams();
+  if (filters.action) params.set("action", filters.action);
+  if (filters.entity_type) params.set("entity_type", filters.entity_type);
+  if (filters.q) params.set("q", filters.q);
+  if (filters.limit) params.set("limit", String(filters.limit));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return authenticatedFetch<AuditLog[]>(`/audit-logs${suffix}`, accessToken);
 }
