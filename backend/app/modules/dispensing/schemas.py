@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.modules.dispensing.models import DispensingStatus, ReturnReason
+from app.modules.inventory.schemas import InventoryBatchRead
 from app.modules.medications.schemas import MedicationRead
 from app.modules.prescriptions.schemas import PrescriptionItemRead, PrescriptionRead
 from app.modules.visits.models import VisitStatus
@@ -47,6 +48,7 @@ class DispensingItemRead(BaseModel):
     unit: str
     notes: str
     inventory_batch_id: UUID | None
+    inventory_batch: InventoryBatchRead | None = None
     medication: MedicationRead
     prescription_item: PrescriptionItemRead
     created_at: datetime

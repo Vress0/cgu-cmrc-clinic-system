@@ -234,6 +234,66 @@ export type ReturnReason =
   | "DUPLICATE_MEDICATION"
   | "OTHER";
 
+export type InventoryTransactionType =
+  | "RECEIVE"
+  | "RESERVE"
+  | "RELEASE"
+  | "DISPENSE"
+  | "RETURN"
+  | "ADJUST_INCREASE"
+  | "ADJUST_DECREASE"
+  | "EXPIRE"
+  | "DISCARD";
+
+export type InventoryBatch = {
+  id: string;
+  medication_id: string;
+  medication: Medication;
+  batch_number: string;
+  expiry_date: string;
+  quantity_on_hand: string;
+  reserved_quantity: string;
+  available_quantity: string;
+  unit: string;
+  location: string;
+  received_at: string;
+  is_active: boolean;
+  created_by: string | null;
+  updated_by: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InventoryTransaction = {
+  id: string;
+  medication_id: string;
+  inventory_batch_id: string;
+  transaction_type: InventoryTransactionType;
+  quantity: string;
+  quantity_before: string;
+  quantity_after: string;
+  reserved_before: string;
+  reserved_after: string;
+  reference_type: string;
+  reference_id: string | null;
+  reason: string;
+  performed_by: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+};
+
+export type InventorySummary = {
+  batch_count: number;
+  active_batch_count: number;
+  total_on_hand: string;
+  total_reserved: string;
+  total_available: string;
+  low_stock_count: number;
+  expiring_count: number;
+  expired_count: number;
+};
+
 export type PharmacyQueueItem = {
   visit_id: string;
   clinic_session_id: string;
@@ -269,6 +329,7 @@ export type DispensingItem = {
   unit: string;
   notes: string;
   inventory_batch_id: string | null;
+  inventory_batch: InventoryBatch | null;
   medication: Medication;
   prescription_item: PrescriptionItem;
   created_at: string;
@@ -632,4 +693,63 @@ export function returnDispensingToClinic(
     method: "POST",
     body: JSON.stringify(payload)
   });
+}
+
+export function listInventoryBatches(accessToken: string, query = ""): Promise<InventoryBatch[]> {
+  const params = new URLSearchParams();
+  if (query) params.set("search", query);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  return authenticatedFetch<InventoryBatch[]>(`/inventory${suffix}`, accessToken);
+}
+
+export function getInventorySummary(accessToken: string): Promise<InventorySummary> {
+  return authenticatedFetch<InventorySummary>("/inventory/summary", accessToken);
+}
+
+export function createInventoryBatch(
+  accessToken: string,
+  payload: {
+    medication_id: string;
+    batch_number: string;
+    expiry_date: string;
+    quantity: string;
+    unit: string;
+    location?: string;
+    received_at?: string;
+  }
+): Promise<InventoryBatch> {
+  return authenticatedFetch<InventoryBatch>("/inventory/batches", accessToken, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateInventoryBatch(
+  accessToken: string,
+  batchId: string,
+  payload: Partial<Pick<InventoryBatch, "batch_number" | "expiry_date" | "unit" | "location" | "is_active">>
+): Promise<InventoryBatch> {
+  return authenticatedFetch<InventoryBatch>(`/inventory/batches/${batchId}`, accessToken, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function createInventoryAdjustment(
+  accessToken: string,
+  payload: { batch_id: string; adjustment_type: InventoryTransactionType; quantity: string; reason: string }
+): Promise<InventoryBatch> {
+  return authenticatedFetch<InventoryBatch>("/inventory/adjustments", accessToken, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function listInventoryTransactions(accessToken: string, medicationId = ""): Promise<InventoryTransaction[]> {
+  const suffix = medicationId ? `?medication_id=${encodeURIComponent(medicationId)}` : "";
+  return authenticatedFetch<InventoryTransaction[]>(`/inventory/transactions${suffix}`, accessToken);
+}
+
+export function listAvailableBatches(accessToken: string, medicationId: string): Promise<InventoryBatch[]> {
+  return authenticatedFetch<InventoryBatch[]>(`/medications/${medicationId}/available-batches`, accessToken);
 }

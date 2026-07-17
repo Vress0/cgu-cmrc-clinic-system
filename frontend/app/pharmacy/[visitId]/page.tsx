@@ -282,6 +282,14 @@ export default function PharmacyVisitPage() {
                               <p className="text-sm text-muted">
                                 處方量 {item.prescribed_quantity} {item.unit}
                               </p>
+                              {item.inventory_batch ? (
+                                <p className="mt-1 text-sm font-bold text-brand">
+                                  批號 {item.inventory_batch.batch_number} · 效期 {item.inventory_batch.expiry_date} ·{" "}
+                                  {item.inventory_batch.location || "未填庫位"}
+                                </p>
+                              ) : (
+                                <p className="mt-1 text-sm font-bold text-danger">尚未分配庫存批次</p>
+                              )}
                             </div>
                             <FormField label="實際調劑量">
                               <TextInput

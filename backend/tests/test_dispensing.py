@@ -133,6 +133,19 @@ def create_sent_prescription(client: TestClient, auth_headers: dict[str, str], c
         },
     )
     assert med_response.status_code == 201
+    inventory_response = client.post(
+        "/api/v1/inventory/batches",
+        headers=auth_headers,
+        json={
+            "medication_id": med_response.json()["id"],
+            "batch_number": f"B-{case_number}",
+            "expiry_date": "2027-12-31",
+            "quantity": "30.00",
+            "unit": "包",
+            "location": "藥櫃 A",
+        },
+    )
+    assert inventory_response.status_code == 201
     prescription = client.get(f"/api/v1/visits/{visit_id}/prescription", headers=auth_headers).json()
     add_response = client.post(
         f"/api/v1/prescriptions/{prescription['id']}/items",

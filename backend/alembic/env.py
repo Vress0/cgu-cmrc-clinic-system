@@ -12,6 +12,7 @@ from app.modules.consultations import models as consultation_models  # noqa: F40
 from app.modules.consents import models as consent_models  # noqa: F401
 from app.modules.dispensing import models as dispensing_models  # noqa: F401
 from app.modules.health_histories import models as health_history_models  # noqa: F401
+from app.modules.inventory import models as inventory_models  # noqa: F401
 from app.modules.medications import models as medication_models  # noqa: F401
 from app.modules.patients import models as patient_models  # noqa: F401
 from app.modules.prescriptions import models as prescription_models  # noqa: F401

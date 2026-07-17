@@ -85,8 +85,11 @@ class DispensingItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     dispensed_quantity: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     unit: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
-    inventory_batch_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    inventory_batch_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("inventory_batches.id", ondelete="RESTRICT"), nullable=True
+    )
 
     dispensing_record = relationship("DispensingRecord", back_populates="items")
     medication = relationship("Medication")
     prescription_item = relationship("PrescriptionItem")
+    inventory_batch = relationship("InventoryBatch")

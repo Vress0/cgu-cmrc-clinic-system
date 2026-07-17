@@ -42,6 +42,7 @@ def get_dispensing_record(db: Session, dispensing_id: UUID) -> DispensingRecord:
         .where(DispensingRecord.id == dispensing_id)
         .options(
             selectinload(DispensingRecord.items).selectinload(DispensingItem.medication),
+            selectinload(DispensingRecord.items).selectinload(DispensingItem.inventory_batch),
             selectinload(DispensingRecord.items)
             .selectinload(DispensingItem.prescription_item)
             .selectinload(PrescriptionItem.medication),
@@ -220,17 +221,18 @@ def start_dispensing(db: Session, visit_id: UUID, actor: User) -> PharmacyVisitD
     )
     db.add(record)
     db.flush()
-    for prescription_item in prescription.items:
-        db.add(
-            DispensingItem(
-                dispensing_record_id=record.id,
-                prescription_item_id=prescription_item.id,
-                medication_id=prescription_item.medication_id,
-                prescribed_quantity=prescription_item.quantity,
-                dispensed_quantity=Decimal("0.00"),
-                unit=prescription_item.dose_unit,
-            )
+    try:
+        from app.modules.inventory.service import reserve_prescription_items
+
+        reserve_prescription_items(
+            db,
+            dispensing_record_id=record.id,
+            prescription_items=list(prescription.items),
+            actor=actor,
         )
+    except HTTPException:
+        db.rollback()
+        raise
     prescription.status = PrescriptionStatus.DISPENSING
     update_visit_status(db, visit, VisitStatus.DISPENSING, actor=actor, commit=False)
     write_audit_log(
@@ -377,6 +379,9 @@ def hand_out_medication(db: Session, dispensing_id: UUID, payload: DispensingHan
     if visit is None or prescription is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dispensing context not found")
     now = datetime.now(timezone.utc)
+    from app.modules.inventory.service import dispense_reserved_inventory
+
+    dispense_reserved_inventory(db, list(record.items), actor)
     record.status = DispensingStatus.DISPENSED
     record.handed_out_by = actor.id
     record.handed_out_at = now
@@ -419,6 +424,9 @@ def return_to_clinic(db: Session, dispensing_id: UUID, payload: DispensingReturn
     record.returned_at = datetime.now(timezone.utc)
     record.updated_by = actor.id
     record.version += 1
+    from app.modules.inventory.service import release_dispensing_inventory
+
+    release_dispensing_inventory(db, list(record.items), actor, "Return dispensing to clinic")
     prescription.status = PrescriptionStatus.RETURNED_TO_CLINIC
     prescription.returned_reason = f"{payload.reason.value}: {payload.details}"
     prescription.returned_at = record.returned_at
