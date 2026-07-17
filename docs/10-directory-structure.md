@@ -1,0 +1,46 @@
+# 完整目錄結構
+
+```text
+cgu-cmrc-clinic-system/
+  backend/
+    alembic/
+    app/
+      api/
+      core/
+      db/
+      modules/
+        auth/
+        users/
+        roles/
+        clinic_sessions/
+        patients/
+        consents/
+        health_histories/
+        visits/
+        queue/
+        vital_signs/
+        consultations/
+        treatment_orders/
+        prescriptions/
+        medications/
+        inventory/
+        dispensing/
+        follow_ups/
+        audit_logs/
+      tests/
+    Dockerfile
+    pyproject.toml
+  frontend/
+    app/
+    components/
+    lib/
+    public/
+    Dockerfile
+    package.json
+  nginx/
+    nginx.conf
+  docs/
+  docker-compose.yml
+  .env.example
+  README.md
+```
