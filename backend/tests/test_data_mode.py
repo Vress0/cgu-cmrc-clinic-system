@@ -212,6 +212,28 @@ def test_delete_demo_data_does_not_delete_live_records(client: TestClient, auth_
     assert [patient["case_number"] for patient in live_list.json()] == ["LIVE-KEEP"]
 
 
+def test_seed_demo_data_is_idempotent_and_contains_demo_scenarios(client: TestClient, auth_headers: dict[str, str]):
+    first_seed = client.post("/api/v1/demo-data/seed", headers=auth_headers)
+    second_seed = client.post("/api/v1/demo-data/seed", headers=auth_headers)
+
+    assert first_seed.status_code == 200
+    assert second_seed.status_code == 200
+    assert first_seed.json()["patient_count"] == 20
+    assert first_seed.json()["session_count"] == 2
+    assert first_seed.json()["inventory_batch_count"] >= 7
+    assert second_seed.json()["patient_count"] == first_seed.json()["patient_count"]
+    assert second_seed.json()["inventory_batch_count"] == first_seed.json()["inventory_batch_count"]
+
+    switch_mode(client, auth_headers, "DEMO")
+    patients = client.get("/api/v1/patients", headers=auth_headers)
+    inventory_summary = client.get("/api/v1/inventory/summary", headers=auth_headers)
+    assert patients.status_code == 200
+    assert all(patient["name"].startswith("示範個案") for patient in patients.json())
+    assert inventory_summary.status_code == 200
+    assert inventory_summary.json()["low_stock_count"] >= 2
+    assert inventory_summary.json()["expired_count"] >= 1
+
+
 def test_visits_inventory_dashboard_and_audit_are_mode_scoped(client: TestClient, auth_headers: dict[str, str]):
     live_patient_id = create_patient(client, auth_headers, "LIVE-SCOPE", "Live Scoped")
     live_session_id = create_clinic_session(client, auth_headers, "Live Scoped Clinic")

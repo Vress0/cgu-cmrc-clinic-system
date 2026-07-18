@@ -1,4 +1,4 @@
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 
 from fastapi import HTTPException, status
@@ -202,44 +202,57 @@ def seed_demo_data(db: Session, actor: User) -> DemoDataStatus:
     db.flush()
 
     medications = [
-        get_or_create_demo_medication(db, "DEMO-G001", "Demo Gan-Mai-Da-Zao", "pack"),
-        get_or_create_demo_medication(db, "DEMO-G002", "Demo Yin-Qiao-San", "pack"),
-        get_or_create_demo_medication(db, "DEMO-G003", "Demo Suan-Zao-Ren-Tang", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G001", "示範甘麥大棗湯", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G002", "示範銀翹散", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G003", "示範酸棗仁湯", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G004", "示範葛根湯", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G005", "示範六味地黃丸", "pack"),
+        get_or_create_demo_medication(db, "DEMO-G006", "示範藿香正氣散", "pack"),
     ]
     now = datetime.now(timezone.utc)
+    inventory_scenarios = {
+        "DEMO-G001": [(10, "8.00", "即期低庫存")],
+        "DEMO-G002": [(365, "120.00", "一般庫存")],
+        "DEMO-G003": [(-30, "15.00", "已過期示範")],
+        "DEMO-G004": [(45, "40.00", "FEFO 近效期"), (180, "30.00", "FEFO 遠效期")],
+        "DEMO-G005": [(400, "5.00", "庫存不足示範")],
+        "DEMO-G006": [(90, "100.00", "一般庫存")],
+    }
     for index, medication in enumerate(medications, start=1):
-        batch = InventoryBatch(
-            medication_id=medication.id,
-            batch_number=f"DEMO-BATCH-{index:02d}",
-            expiry_date=date(today.year + 1, min(index + 1, 12), 1),
-            quantity_on_hand=Decimal("120.00"),
-            reserved_quantity=Decimal("0.00"),
-            unit=medication.unit,
-            location="Demo pharmacy cabinet",
-            received_at=now,
-            is_active=True,
-            created_by=actor.id,
-            updated_by=actor.id,
-        )
-        db.add(batch)
-        db.flush()
-        db.add(
-            InventoryTransaction(
+        for batch_index, (expiry_offset_days, quantity, scenario) in enumerate(inventory_scenarios[medication.code], start=1):
+            quantity_decimal = Decimal(quantity)
+            batch = InventoryBatch(
                 medication_id=medication.id,
-                inventory_batch_id=batch.id,
-                transaction_type=InventoryTransactionType.RECEIVE,
-                quantity=Decimal("120.00"),
-                quantity_before=Decimal("0.00"),
-                quantity_after=Decimal("120.00"),
-                reserved_before=Decimal("0.00"),
-                reserved_after=Decimal("0.00"),
-                reference_type="demo_seed",
-                reference_id=batch.id,
-                reason="Seed demo inventory",
-                performed_by=actor.id,
-                created_at=now,
+                batch_number=f"DEMO-BATCH-{index:02d}-{batch_index:02d}",
+                expiry_date=today + timedelta(days=expiry_offset_days),
+                quantity_on_hand=quantity_decimal,
+                reserved_quantity=Decimal("0.00"),
+                unit=medication.unit,
+                location=f"示範藥櫃 {index}",
+                received_at=now,
+                is_active=True,
+                created_by=actor.id,
+                updated_by=actor.id,
             )
-        )
+            db.add(batch)
+            db.flush()
+            db.add(
+                InventoryTransaction(
+                    medication_id=medication.id,
+                    inventory_batch_id=batch.id,
+                    transaction_type=InventoryTransactionType.RECEIVE,
+                    quantity=quantity_decimal,
+                    quantity_before=Decimal("0.00"),
+                    quantity_after=quantity_decimal,
+                    reserved_before=Decimal("0.00"),
+                    reserved_after=Decimal("0.00"),
+                    reference_type="demo_seed",
+                    reference_id=batch.id,
+                    reason=f"Seed demo inventory: {scenario}",
+                    performed_by=actor.id,
+                    created_at=now,
+                )
+            )
 
     statuses = [
         VisitStatus.WAITING_FOR_CLINIC,
@@ -249,35 +262,36 @@ def seed_demo_data(db: Session, actor: User) -> DemoDataStatus:
         VisitStatus.WAITING_FOR_PICKUP,
         VisitStatus.COMPLETED,
         VisitStatus.REGISTERED,
+        VisitStatus.IN_CONSULTATION,
     ]
     for index in range(1, 21):
         patient = Patient(
             case_number=f"DEMO-{index:04d}",
-            name=f"Demo Patient {index:02d}",
+            name=f"示範個案{index:02d}",
             sex="F" if index % 2 else "M",
             birth_date=date(1950 + (index % 35), (index % 12) + 1, (index % 27) + 1),
-            phone=f"0900-000-{index:03d}",
-            residence_area="Demo district",
-            emergency_contact="Demo family",
-            emergency_contact_phone="0900-999-999",
+            phone=f"0000-000-{index:03d}",
+            residence_area="示範地址",
+            emergency_contact="示範家屬",
+            emergency_contact_phone="0000-999-999",
             primary_language="Mandarin",
-            assistance_needs="Needs larger font guidance" if index % 5 == 0 else "",
+            assistance_needs="需要放大字體與行動協助" if index % 5 == 0 else "",
         )
         db.add(patient)
         db.flush()
         db.add(
             HealthHistory(
                 patient_id=patient.id,
-                chronic_diseases="Hypertension" if index % 4 == 0 else "",
-                allergies="Penicillin" if index % 6 == 0 else "",
-                current_medications="Demo medication note",
+                chronic_diseases="高血壓" if index % 4 == 0 else "",
+                allergies="青黴素" if index % 6 == 0 else "",
+                current_medications="示範用藥紀錄",
                 surgery_history="",
                 fall_history="",
                 smoking_status="none",
                 alcohol_status="none",
                 sleep_status="interrupted" if index % 3 == 0 else "normal",
                 diet_status="regular",
-                notes="Demo health history",
+                notes="示範健康史",
             )
         )
         db.add(
@@ -286,23 +300,25 @@ def seed_demo_data(db: Session, actor: User) -> DemoDataStatus:
                 version="demo-v1",
                 method="written",
                 consented_at=now,
-                staff_name="Demo staff",
+                staff_name="示範人員",
                 consented_by=actor.id,
                 service_consent=True,
                 research_consent=index % 2 == 0,
-                notes="Demo consent",
+                notes="示範同意紀錄",
             )
         )
         session = morning if index <= 10 else afternoon
         visit_status = statuses[(index - 1) % len(statuses)]
+        if index == 20:
+            visit_status = VisitStatus.IN_CONSULTATION
         visit = Visit(
             clinic_session_id=session.id,
             patient_id=patient.id,
             queue_number=index if index <= 10 else index - 10,
             registered_at=now,
             status=visit_status,
-            registration_staff="Demo staff",
-            notes="Demo visit",
+            registration_staff="示範人員",
+            notes="示範掛號",
             completed_at=now if visit_status == VisitStatus.COMPLETED else None,
         )
         db.add(visit)
@@ -312,10 +328,10 @@ def seed_demo_data(db: Session, actor: User) -> DemoDataStatus:
             db.add(
                 Consultation(
                     visit_id=visit.id,
-                    chief_complaint="Demo chief complaint",
-                    symptom_description="Demo symptom description",
+                    chief_complaint="示範主訴",
+                    symptom_description="示範症狀描述",
                     requires_pharmacy=visit_status != VisitStatus.IN_CONSULTATION,
-                    clinician_notes="Demo clinical note",
+                    clinician_notes="示範臨床紀錄",
                 )
             )
         if visit_status in {
@@ -346,8 +362,35 @@ def seed_demo_data(db: Session, actor: User) -> DemoDataStatus:
                     route="PO",
                     duration_days=3,
                     quantity=Decimal("6.00"),
-                    instructions="Demo instructions",
-                    notes="Demo prescription item",
+                    instructions="示範用藥指示",
+                    notes="示範處方項目",
+                )
+            )
+        if index == 20:
+            prescription = Prescription(
+                visit_id=visit.id,
+                status=PrescriptionStatus.RETURNED_TO_CLINIC,
+                created_by=actor.id,
+                confirmed_by=actor.id,
+                confirmed_at=now,
+                sent_to_pharmacy_at=now,
+                returned_at=now,
+                returned_reason="示範處方退回診間",
+            )
+            db.add(prescription)
+            db.flush()
+            db.add(
+                PrescriptionItem(
+                    prescription_id=prescription.id,
+                    medication_id=medications[3].id,
+                    dose="1",
+                    dose_unit="pack",
+                    frequency="BID",
+                    route="PO",
+                    duration_days=3,
+                    quantity=Decimal("6.00"),
+                    instructions="示範用藥指示",
+                    notes="示範退回處方項目",
                 )
             )
 
