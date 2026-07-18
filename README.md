@@ -30,6 +30,142 @@
 | Runtime | Docker Compose |
 | Reverse Proxy | Nginx |
 
+## Docker 安裝與基本教學
+
+本專案最建議使用 Docker 執行。Docker 會把 PostgreSQL、backend、frontend 與 Nginx 包在容器中，避免每台電腦都要手動安裝不同版本的 Python、Node.js 與 PostgreSQL。
+
+### 1. 安裝 Docker
+
+Windows / macOS：
+
+1. 到 Docker 官方網站下載 Docker Desktop：`https://www.docker.com/products/docker-desktop/`
+2. 安裝完成後開啟 Docker Desktop。
+3. Windows 使用者若看到 WSL 2 提示，依照畫面指示安裝或啟用 WSL 2。
+4. 等到 Docker Desktop 顯示 `Docker Desktop is running` 或左下角狀態為 running。
+
+Linux：
+
+1. 依照發行版安裝 Docker Engine 與 Docker Compose plugin。
+2. 確認目前使用者可以執行 `docker` 指令。
+3. 若出現 permission denied，可將使用者加入 `docker` 群組後重新登入。
+
+### 2. 確認 Docker 是否正常
+
+開啟 PowerShell、Terminal 或命令列，執行：
+
+```powershell
+docker --version
+docker compose version
+docker run hello-world
+```
+
+成功時會看到 Docker 版本、Docker Compose 版本，以及 `hello-world` 容器輸出的測試訊息。
+
+### 3. 啟動本專案
+
+Windows PowerShell：
+
+```powershell
+git clone https://github.com/Vress0/cgu-cmrc-clinic-system.git
+cd cgu-cmrc-clinic-system
+Copy-Item .env.example .env
+docker compose up --build -d
+```
+
+Linux/macOS：
+
+```bash
+git clone https://github.com/Vress0/cgu-cmrc-clinic-system.git
+cd cgu-cmrc-clinic-system
+cp .env.example .env
+docker compose up --build -d
+```
+
+### 4. 查看服務狀態
+
+```powershell
+docker compose ps
+```
+
+正常時會看到 `postgres`、`backend`、`frontend`、`nginx` 都在 running 或 healthy 狀態。
+
+### 5. 開啟系統
+
+```text
+http://localhost:8080
+```
+
+預設開發帳號：
+
+```text
+帳號：admin
+密碼：ChangeMe123!
+```
+
+### 6. 常用 Docker 指令
+
+停止服務：
+
+```powershell
+docker compose stop
+```
+
+重新啟動服務：
+
+```powershell
+docker compose start
+```
+
+停止並移除容器，但保留資料 volume：
+
+```powershell
+docker compose down
+```
+
+重新建置並啟動：
+
+```powershell
+docker compose up --build -d
+```
+
+查看 backend log：
+
+```powershell
+docker compose logs backend --tail=200
+```
+
+查看 frontend log：
+
+```powershell
+docker compose logs frontend --tail=200
+```
+
+### 7. 常見問題
+
+如果出現 `Cannot connect to the Docker daemon`：
+
+- 先確認 Docker Desktop 已開啟。
+- 等 Docker Desktop 完全啟動後再重跑指令。
+
+如果出現 port 被占用：
+
+- 確認 `8080`、`3000`、`8081`、`5432` 是否已被其他程式使用。
+- 可以先停止其他服務，或修改 `docker-compose.yml` 的 port 對應。
+
+如果前端顯示 `Invalid token`：
+
+- 重新登入即可。
+- 若仍然卡住，重新整理瀏覽器或清除本站 localStorage。
+
+如果想重建乾淨環境：
+
+```powershell
+docker compose down
+docker compose up --build -d
+```
+
+這會保留資料庫 volume。只有在明確知道會刪除資料時，才使用會移除 volume 的指令。
+
 ## 快速開始：開發環境
 
 需求：
