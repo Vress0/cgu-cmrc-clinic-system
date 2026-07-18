@@ -5,7 +5,6 @@
 - `/login`
 - `/dashboard`
 - `/registration`
-- `/registration/new`
 - `/patients`
 - `/patients/[id]`
 - `/clinic`
@@ -18,6 +17,7 @@
 - `/users`
 - `/audit-logs`
 - `/settings`
+- `/settings/demo-data`
 
 ## 元件分層
 

@@ -20,12 +20,10 @@ cgu-cmrc-clinic-system/
         queue/
         vital_signs/
         consultations/
-        treatment_orders/
         prescriptions/
         medications/
         inventory/
         dispensing/
-        follow_ups/
         audit_logs/
       tests/
     Dockerfile
