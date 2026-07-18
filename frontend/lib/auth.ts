@@ -13,6 +13,11 @@ export function saveSession(tokenResponse: TokenResponse): void {
   window.dispatchEvent(new Event("auth:changed"));
 }
 
+export function updateStoredUser(user: UserProfile): void {
+  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event("auth:changed"));
+}
+
 export function clearSession(): void {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(REFRESH_TOKEN_KEY);

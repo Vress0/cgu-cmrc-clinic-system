@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 
 import { AuthStatus } from "@/components/auth-status";
+import { DataModeSwitcher } from "@/components/data-mode-switcher";
 
 const navItems = [
-  { href: "/dashboard", label: "儀表板", icon: Home },
+  { href: "/dashboard", label: "總覽", icon: Home },
   { href: "/sessions", label: "義診場次", icon: CalendarDays },
   { href: "/registration", label: "掛號", icon: ClipboardList },
   { href: "/patients", label: "病人資料", icon: Users },
@@ -25,7 +26,8 @@ const navItems = [
   { href: "/inventory", label: "庫存", icon: PackageSearch },
   { href: "/users", label: "使用者", icon: UserCog },
   { href: "/audit-logs", label: "稽核紀錄", icon: FileSearch },
-  { href: "/settings", label: "設定", icon: Settings }
+  { href: "/settings", label: "系統設定", icon: Settings },
+  { href: "/settings/demo-data", label: "DEMO 資料", icon: Settings }
 ];
 
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -43,7 +45,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             </div>
           </div>
           <p className="rounded-md border border-line bg-paper/70 px-3 py-2 text-sm leading-6 text-muted">
-            掛號、診間、藥局、庫存與稽核流程整合工作台
+            掛號、診間、藥局、庫存與稽核流程的現場工作台。
           </p>
         </div>
         <nav className="relative z-10 flex gap-2 overflow-x-auto px-3 pb-4 lg:block lg:space-y-1 lg:overflow-visible">
@@ -61,6 +63,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             );
           })}
         </nav>
+        <DataModeSwitcher />
         <div className="relative z-10">
           <AuthStatus />
         </div>

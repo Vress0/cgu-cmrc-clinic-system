@@ -13,6 +13,34 @@ export type UserProfile = {
   full_name: string;
   roles: string[];
   permissions: string[];
+  data_mode: DataMode;
+  can_access_live: boolean;
+  can_access_demo: boolean;
+};
+
+export type DataMode = "LIVE" | "DEMO";
+
+export type DataModeStatus = {
+  mode: DataMode;
+  label: string;
+  can_switch: boolean;
+  enable_demo_mode: boolean;
+  can_access_live: boolean;
+  can_access_demo: boolean;
+};
+
+export type DataModeSwitchResponse = DataModeStatus & {
+  message: string;
+};
+
+export type DemoDataStatus = {
+  enabled: boolean;
+  patient_count: number;
+  session_count: number;
+  visit_count: number;
+  prescription_count: number;
+  inventory_batch_count: number;
+  audit_log_count: number;
 };
 
 export type TokenResponse = {
@@ -430,6 +458,7 @@ export type AuditLog = {
   entity_type: string;
   entity_id: string | null;
   summary: string;
+  data_mode: DataMode;
   created_at: string;
 };
 
@@ -503,6 +532,40 @@ async function authenticatedFetch<T>(path: string, accessToken: string, init?: R
     throw new Error(error?.detail ?? "操作失敗");
   }
   return response.json() as Promise<T>;
+}
+
+export function getMe(accessToken: string): Promise<UserProfile> {
+  return authenticatedFetch<UserProfile>("/auth/me", accessToken);
+}
+
+export function getDataMode(accessToken: string): Promise<DataModeStatus> {
+  return authenticatedFetch<DataModeStatus>("/data-mode", accessToken);
+}
+
+export function switchDataMode(accessToken: string, mode: DataMode): Promise<DataModeSwitchResponse> {
+  return authenticatedFetch<DataModeSwitchResponse>("/data-mode/switch", accessToken, {
+    method: "POST",
+    body: JSON.stringify({ mode, confirmation: `SWITCH TO ${mode}` })
+  });
+}
+
+export function getDemoDataStatus(accessToken: string): Promise<DemoDataStatus> {
+  return authenticatedFetch<DemoDataStatus>("/demo-data/status", accessToken);
+}
+
+export function seedDemoData(accessToken: string): Promise<DemoDataStatus> {
+  return authenticatedFetch<DemoDataStatus>("/demo-data/seed", accessToken, { method: "POST" });
+}
+
+export function resetDemoData(accessToken: string): Promise<DemoDataStatus> {
+  return authenticatedFetch<DemoDataStatus>("/demo-data/reset", accessToken, { method: "POST" });
+}
+
+export function deleteDemoData(accessToken: string): Promise<DemoDataStatus> {
+  return authenticatedFetch<DemoDataStatus>("/demo-data", accessToken, {
+    method: "DELETE",
+    body: JSON.stringify({ confirmation: "DELETE DEMO DATA" })
+  });
 }
 
 export function listClinicSessions(accessToken: string): Promise<ClinicSession[]> {
