@@ -71,6 +71,77 @@ docker compose up --build -d
 
 正式部署請不要沿用開發密碼。
 
+## 沒有 Docker 的啟動方式
+
+不建議一般部署使用這個方式。沒有 Docker 時，需要自己處理 Python、Node.js、PostgreSQL、環境變數與 migration，較容易遇到版本或路徑問題。若只是要給社團成員使用，建議優先安裝 Docker Desktop。
+
+必要工具：
+
+- Node.js 22
+- Python 3.10 以上，建議 Python 3.12
+- PostgreSQL 16
+- Git
+
+先在 PostgreSQL 建立資料庫與帳號：
+
+```text
+database: clinic
+user: clinic
+password: clinic
+host: localhost
+port: 5432
+```
+
+Windows PowerShell 啟動 backend：
+
+```powershell
+cd backend
+$env:DATABASE_URL="postgresql+psycopg://clinic:clinic@localhost:5432/clinic"
+$env:SECRET_KEY="change-this-development-secret-before-production"
+$env:BACKEND_CORS_ORIGINS="http://localhost:3000,http://127.0.0.1:3000"
+$env:DEFAULT_ADMIN_USERNAME="admin"
+$env:DEFAULT_ADMIN_EMAIL="admin@example.com"
+$env:DEFAULT_ADMIN_PASSWORD="ChangeMe123!"
+$env:ENABLE_DEMO_MODE="true"
+$env:DEFAULT_DATA_MODE="LIVE"
+$env:ALLOW_DEMO_RESET="true"
+pip install -e ".[dev]"
+alembic upgrade head
+python -m app.modules.auth.seed_admin
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+另開一個終端機啟動 frontend：
+
+```powershell
+cd frontend
+$env:NEXT_PUBLIC_API_BASE_URL="http://localhost:8000/api/v1"
+npm install
+npm run dev
+```
+
+開啟：
+
+```text
+http://localhost:3000
+```
+
+登入：
+
+```text
+帳號：admin
+密碼：ChangeMe123!
+```
+
+Linux/macOS 可用同樣流程，但環境變數寫法改為：
+
+```bash
+export DATABASE_URL="postgresql+psycopg://clinic:clinic@localhost:5432/clinic"
+export SECRET_KEY="change-this-development-secret-before-production"
+export BACKEND_CORS_ORIGINS="http://localhost:3000,http://127.0.0.1:3000"
+export NEXT_PUBLIC_API_BASE_URL="http://localhost:8000/api/v1"
+```
+
 ## 一鍵部署：正式環境
 
 Windows PowerShell：
