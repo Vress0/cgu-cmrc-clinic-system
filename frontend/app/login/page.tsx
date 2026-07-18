@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, LockKeyhole, ScrollText } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -30,8 +31,15 @@ export default function LoginPage() {
     defaultValues: { username: "", password: "" }
   });
 
+  useEffect(() => {
+    if (window.location.search.includes("expired=1")) {
+      setNotice("登入已失效，請重新登入。");
+    }
+  }, []);
+
   async function onSubmit(values: LoginFormValues) {
     setError(null);
+    setNotice(null);
     try {
       const tokenResponse = await login(values.username, values.password);
       saveSession(tokenResponse);
@@ -77,6 +85,11 @@ export default function LoginPage() {
           {error ? (
             <Alert tone="danger" className="mb-5" title="無法登入">
               {error}
+            </Alert>
+          ) : null}
+          {notice ? (
+            <Alert tone="warning" className="mb-5" title="請重新登入">
+              {notice}
             </Alert>
           ) : null}
 

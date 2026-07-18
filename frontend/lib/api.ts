@@ -1,3 +1,5 @@
+import { clearSession } from "@/lib/auth";
+
 export type HealthResponse = {
   status: "ok" | "degraded";
   database: "ok" | "unavailable";
@@ -529,6 +531,15 @@ async function authenticatedFetch<T>(path: string, accessToken: string, init?: R
   });
   if (!response.ok) {
     const error = (await response.json().catch(() => null)) as { detail?: string } | null;
+    if (response.status === 401) {
+      if (typeof window !== "undefined") {
+        clearSession();
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login?expired=1";
+        }
+      }
+      throw new Error("登入已失效，請重新登入。");
+    }
     throw new Error(error?.detail ?? "操作失敗");
   }
   return response.json() as Promise<T>;
