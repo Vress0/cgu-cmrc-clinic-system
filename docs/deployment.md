@@ -56,7 +56,12 @@ DATABASE_CONNECT_TIMEOUT_SECONDS=5
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=14
 DEFAULT_ADMIN_FULL_NAME=System Administrator
+ENABLE_DEMO_MODE=true
+DEFAULT_DATA_MODE=LIVE
+ALLOW_DEMO_RESET=true
 ```
+
+`ENABLE_DEMO_MODE`, `DEFAULT_DATA_MODE`, and `ALLOW_DEMO_RESET` control the LIVE/DEMO data-mode feature. See `docs/data-mode.md` for isolation rules and verification steps.
 
 Start production-style services manually:
 

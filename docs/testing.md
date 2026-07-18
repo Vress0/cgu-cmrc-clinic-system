@@ -63,6 +63,8 @@ The frontend currently has no `npm run test` or `npm run test:e2e` script. Treat
 8. Start dispensing, verify, and hand out medication.
 9. Confirm FEFO stock deduction and inventory transactions.
 10. Confirm dashboard counts and audit logs.
+11. Switch from LIVE to DEMO and confirm LIVE patients, visits, prescriptions, inventory batches, and audit logs are hidden.
+12. Seed or create DEMO records, switch back to LIVE, and confirm DEMO records are hidden and LIVE records remain unchanged.
 
 ## Responsive Smoke Test Viewports
 
