@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class DispensingStatus(str, PythonEnum):
@@ -30,7 +30,7 @@ class ReturnReason(str, PythonEnum):
     OTHER = "OTHER"
 
 
-class DispensingRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class DispensingRecord(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "dispensing_records"
 
     visit_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("visits.id", ondelete="CASCADE"), index=True)
@@ -71,7 +71,7 @@ class DispensingRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     visit = relationship("Visit")
 
 
-class DispensingItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class DispensingItem(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "dispensing_items"
 
     dispensing_record_id: Mapped[UUID] = mapped_column(

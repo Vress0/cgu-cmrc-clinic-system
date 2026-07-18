@@ -4,7 +4,7 @@ from enum import Enum as PythonEnum
 from sqlalchemy import Date, Enum, String, Text, Time, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class ClinicSessionStatus(str, PythonEnum):
@@ -14,9 +14,9 @@ class ClinicSessionStatus(str, PythonEnum):
     ARCHIVED = "ARCHIVED"
 
 
-class ClinicSession(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class ClinicSession(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "clinic_sessions"
-    __table_args__ = (UniqueConstraint("name", "session_date", name="uq_session_name_date"),)
+    __table_args__ = (UniqueConstraint("data_mode", "name", "session_date", name="uq_session_mode_name_date"),)
 
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     session_date: Mapped[date] = mapped_column(Date, index=True, nullable=False)

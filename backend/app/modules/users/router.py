@@ -36,11 +36,30 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "inventory:manage",
         "audit_logs:read",
         "exports:anonymous",
+        "data_mode.live.access",
+        "data_mode.demo.access",
+        "data_mode.switch",
+        "demo_data.manage",
     ],
-    "registration": ["sessions:manage", "patients:read", "patients:write", "visits:manage"],
-    "clinic_student": ["patients:read", "clinic:write"],
-    "clinician": ["patients:read", "clinic:write", "prescriptions:confirm"],
-    "pharmacy": ["patients:read", "pharmacy:dispense"],
+    "registration": [
+        "sessions:manage",
+        "patients:read",
+        "patients:write",
+        "visits:manage",
+        "data_mode.live.access",
+        "data_mode.demo.access",
+        "data_mode.switch",
+    ],
+    "clinic_student": ["patients:read", "clinic:write", "data_mode.live.access", "data_mode.demo.access", "data_mode.switch"],
+    "clinician": [
+        "patients:read",
+        "clinic:write",
+        "prescriptions:confirm",
+        "data_mode.live.access",
+        "data_mode.demo.access",
+        "data_mode.switch",
+    ],
+    "pharmacy": ["patients:read", "pharmacy:dispense", "data_mode.live.access", "data_mode.demo.access", "data_mode.switch"],
 }
 
 
@@ -66,6 +85,10 @@ def serialize_user(user: User) -> ManagedUserRead:
         locked_until=user.locked_until,
         last_login_at=user.last_login_at,
         roles=user_role_names(user),
+        can_access_live=user.can_access_live,
+        can_access_demo=user.can_access_demo,
+        default_data_mode=user.default_data_mode,
+        current_data_mode=user.current_data_mode,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )
@@ -123,6 +146,10 @@ def create_user(
         full_name=payload.full_name,
         password_hash=hash_password(payload.password),
         is_active=payload.is_active,
+        can_access_live=payload.can_access_live,
+        can_access_demo=payload.can_access_demo,
+        default_data_mode=payload.default_data_mode,
+        current_data_mode=payload.default_data_mode,
         roles=roles_by_name(db, payload.roles),
     )
     db.add(user)
@@ -161,6 +188,14 @@ def update_user(
         user.full_name = values["full_name"]
     if "is_active" in values:
         user.is_active = values["is_active"]
+    if "can_access_live" in values:
+        user.can_access_live = values["can_access_live"]
+    if "can_access_demo" in values:
+        user.can_access_demo = values["can_access_demo"]
+    if "default_data_mode" in values:
+        user.default_data_mode = values["default_data_mode"]
+    if "current_data_mode" in values:
+        user.current_data_mode = values["current_data_mode"]
     if payload.roles is not None:
         user.roles = roles_by_name(db, payload.roles)
     if payload.unlock:

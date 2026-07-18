@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_EMAIL: str = "admin@example.com"
     DEFAULT_ADMIN_FULL_NAME: str = "System Administrator"
     DEFAULT_ADMIN_PASSWORD: str = "ChangeMe123!"
+    ENABLE_DEMO_MODE: bool = True
+    DEFAULT_DATA_MODE: str = "LIVE"
+    ALLOW_DEMO_RESET: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -33,6 +36,14 @@ class Settings(BaseSettings):
         if value not in allowed:
             raise ValueError(f"ENVIRONMENT must be one of: {', '.join(sorted(allowed))}")
         return value
+
+    @field_validator("DEFAULT_DATA_MODE")
+    @classmethod
+    def validate_default_data_mode(cls, value: str) -> str:
+        normalized = value.upper()
+        if normalized not in {"LIVE", "DEMO"}:
+            raise ValueError("DEFAULT_DATA_MODE must be LIVE or DEMO")
+        return normalized
 
     @property
     def cors_origins(self) -> list[str]:

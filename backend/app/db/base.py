@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Uuid
+from sqlalchemy import DateTime, Enum, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from app.core.data_mode import DataMode
 
 
 class Base(DeclarativeBase):
@@ -27,5 +29,14 @@ class TimestampMixin:
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class DataModeScopedMixin:
+    data_mode: Mapped[DataMode] = mapped_column(
+        Enum(DataMode),
+        default=DataMode.LIVE,
+        index=True,
         nullable=False,
     )

@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class InventoryTransactionType(str, PythonEnum):
@@ -21,7 +21,7 @@ class InventoryTransactionType(str, PythonEnum):
     DISCARD = "DISCARD"
 
 
-class InventoryBatch(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class InventoryBatch(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "inventory_batches"
     __table_args__ = (
         CheckConstraint("quantity_on_hand >= 0", name="ck_inventory_batches_quantity_nonnegative"),
@@ -55,7 +55,7 @@ class InventoryBatch(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         return self.quantity_on_hand - self.reserved_quantity
 
 
-class InventoryTransaction(UUIDPrimaryKeyMixin, Base):
+class InventoryTransaction(UUIDPrimaryKeyMixin, DataModeScopedMixin, Base):
     __tablename__ = "inventory_transactions"
 
     medication_id: Mapped[UUID] = mapped_column(

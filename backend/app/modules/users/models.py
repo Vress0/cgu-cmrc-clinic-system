@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.data_mode import DataMode
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from app.modules.roles.models import user_roles
 
@@ -18,5 +19,9 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     failed_login_count: Mapped[int] = mapped_column(default=0, nullable=False)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    can_access_live: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    can_access_demo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    default_data_mode: Mapped[DataMode] = mapped_column(Enum(DataMode), default=DataMode.LIVE, nullable=False)
+    current_data_mode: Mapped[DataMode] = mapped_column(Enum(DataMode), default=DataMode.LIVE, nullable=False)
 
     roles = relationship("Role", secondary=user_roles, back_populates="users")

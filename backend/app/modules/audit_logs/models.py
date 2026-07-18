@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy import ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class AuditLog(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class AuditLog(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "audit_logs"
 
     actor_user_id: Mapped[UUID | None] = mapped_column(

@@ -4,10 +4,10 @@ from uuid import UUID
 from sqlalchemy import Boolean, DateTime, ForeignKey, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class Consultation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class Consultation(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "consultations"
 
     visit_id: Mapped[UUID] = mapped_column(

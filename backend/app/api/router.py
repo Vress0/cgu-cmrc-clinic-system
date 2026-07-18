@@ -8,6 +8,7 @@ from app.modules.clinic_sessions.router import router as clinic_sessions_router
 from app.modules.consultations.router import router as consultations_router
 from app.modules.consents.router import router as consents_router
 from app.modules.dashboard.router import router as dashboard_router
+from app.modules.data_mode.router import router as data_mode_router
 from app.modules.dispensing.router import router as dispensing_router
 from app.modules.health_histories.router import router as health_histories_router
 from app.modules.inventory.router import router as inventory_router
@@ -27,6 +28,7 @@ api_router.include_router(health_histories_router)
 api_router.include_router(consents_router)
 api_router.include_router(visits_router)
 api_router.include_router(users_router)
+api_router.include_router(data_mode_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(medications_router)
 api_router.include_router(clinic_router)

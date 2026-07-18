@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.core.data_mode import DataMode
+
 
 class ManagedUserRead(BaseModel):
     id: UUID
@@ -14,6 +16,10 @@ class ManagedUserRead(BaseModel):
     locked_until: datetime | None
     last_login_at: datetime | None
     roles: list[str]
+    can_access_live: bool
+    can_access_demo: bool
+    default_data_mode: DataMode
+    current_data_mode: DataMode
     created_at: datetime
     updated_at: datetime
 
@@ -25,6 +31,9 @@ class ManagedUserCreate(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     roles: list[str] = Field(default_factory=list)
     is_active: bool = True
+    can_access_live: bool = True
+    can_access_demo: bool = True
+    default_data_mode: DataMode = DataMode.LIVE
 
 
 class ManagedUserUpdate(BaseModel):
@@ -32,6 +41,10 @@ class ManagedUserUpdate(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=120)
     roles: list[str] | None = None
     is_active: bool | None = None
+    can_access_live: bool | None = None
+    can_access_demo: bool | None = None
+    default_data_mode: DataMode | None = None
+    current_data_mode: DataMode | None = None
     unlock: bool = False
 
 

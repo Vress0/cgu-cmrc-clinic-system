@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class VisitStatus(str, PythonEnum):
@@ -20,10 +20,10 @@ class VisitStatus(str, PythonEnum):
     CANCELLED = "CANCELLED"
 
 
-class Visit(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class Visit(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "visits"
     __table_args__ = (
-        UniqueConstraint("clinic_session_id", "patient_id", name="uq_visit_session_patient"),
+        UniqueConstraint("data_mode", "clinic_session_id", "patient_id", name="uq_visit_mode_session_patient"),
     )
 
     clinic_session_id: Mapped[UUID] = mapped_column(

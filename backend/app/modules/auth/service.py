@@ -7,6 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.data_mode import normalize_data_mode
 from app.core.security import create_access_token, verify_password
 from app.modules.auth.models import RefreshToken
 from app.modules.auth.repository import (
@@ -33,6 +34,7 @@ def user_role_names(user: User) -> list[str]:
 
 
 def user_profile(user: User) -> UserProfile:
+    data_mode = normalize_data_mode(user.current_data_mode, default=normalize_data_mode(settings.DEFAULT_DATA_MODE))
     return UserProfile(
         id=user.id,
         username=user.username,
@@ -40,6 +42,9 @@ def user_profile(user: User) -> UserProfile:
         full_name=user.full_name,
         roles=user_role_names(user),
         permissions=user_permissions(user),
+        data_mode=data_mode,
+        can_access_live=user.can_access_live,
+        can_access_demo=settings.ENABLE_DEMO_MODE and user.can_access_demo,
     )
 
 

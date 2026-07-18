@@ -1,15 +1,16 @@
 from datetime import date
 
-from sqlalchemy import Date, String, Text
+from sqlalchemy import Date, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class Patient(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class Patient(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "patients"
+    __table_args__ = (UniqueConstraint("data_mode", "case_number", name="uq_patient_mode_case_number"),)
 
-    case_number: Mapped[str] = mapped_column(String(40), unique=True, index=True, nullable=False)
+    case_number: Mapped[str] = mapped_column(String(40), index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(80), index=True, nullable=False)
     sex: Mapped[str] = mapped_column(String(20), nullable=False)
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)

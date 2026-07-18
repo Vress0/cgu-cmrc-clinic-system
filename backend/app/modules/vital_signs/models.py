@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class BloodGlucoseContext(str, PythonEnum):
@@ -16,7 +16,7 @@ class BloodGlucoseContext(str, PythonEnum):
     UNKNOWN = "unknown"
 
 
-class VitalSign(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class VitalSign(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "vital_signs"
 
     visit_id: Mapped[UUID] = mapped_column(

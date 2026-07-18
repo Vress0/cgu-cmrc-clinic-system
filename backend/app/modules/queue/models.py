@@ -4,13 +4,13 @@ from uuid import UUID
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class QueueRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class QueueRecord(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "queue_records"
     __table_args__ = (
-        UniqueConstraint("clinic_session_id", "queue_number", name="uq_queue_session_number"),
+        UniqueConstraint("data_mode", "clinic_session_id", "queue_number", name="uq_queue_mode_session_number"),
     )
 
     clinic_session_id: Mapped[UUID] = mapped_column(

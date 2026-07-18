@@ -1,6 +1,7 @@
 from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.data_mode import DataMode, normalize_data_mode
 from app.core.security import hash_password
 from app.db.session import get_session_factory
 from app.modules.roles.models import Permission, Role
@@ -19,6 +20,10 @@ DEFAULT_PERMISSIONS = [
     ("inventory:manage", "Manage inventory"),
     ("audit_logs:read", "Read audit logs"),
     ("exports:anonymous", "Export anonymized reports"),
+    ("data_mode.live.access", "Access live data mode"),
+    ("data_mode.demo.access", "Access demo data mode"),
+    ("data_mode.switch", "Switch current data mode"),
+    ("demo_data.manage", "Manage demo data"),
 ]
 
 
@@ -51,11 +56,20 @@ def seed_admin() -> None:
                 full_name=settings.DEFAULT_ADMIN_FULL_NAME,
                 password_hash=hash_password(settings.DEFAULT_ADMIN_PASSWORD),
                 is_active=True,
+                can_access_live=True,
+                can_access_demo=True,
+                default_data_mode=normalize_data_mode(settings.DEFAULT_DATA_MODE),
+                current_data_mode=normalize_data_mode(settings.DEFAULT_DATA_MODE),
                 roles=[admin_role],
             )
             db.add(admin)
         elif admin_role not in admin.roles:
             admin.roles.append(admin_role)
+
+        if admin is not None:
+            admin.can_access_live = True
+            admin.can_access_demo = True
+            admin.default_data_mode = normalize_data_mode(settings.DEFAULT_DATA_MODE, default=DataMode.LIVE)
 
         db.commit()
 

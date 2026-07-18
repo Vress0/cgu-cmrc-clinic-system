@@ -4,10 +4,10 @@ from uuid import UUID
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class Consent(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class Consent(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "consents"
 
     patient_id: Mapped[UUID] = mapped_column(

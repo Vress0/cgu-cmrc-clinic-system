@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy import ForeignKey, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
-class HealthHistory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class HealthHistory(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "health_histories"
 
     patient_id: Mapped[UUID] = mapped_column(

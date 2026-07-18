@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.db.base import Base, DataModeScopedMixin, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class PrescriptionStatus(str, PythonEnum):
@@ -22,9 +22,9 @@ class PrescriptionStatus(str, PythonEnum):
     VOIDED = "VOIDED"
 
 
-class Prescription(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class Prescription(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "prescriptions"
-    __table_args__ = (UniqueConstraint("visit_id", name="uq_prescription_visit"),)
+    __table_args__ = (UniqueConstraint("data_mode", "visit_id", name="uq_prescription_mode_visit"),)
 
     visit_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
@@ -57,7 +57,7 @@ class Prescription(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
 
-class PrescriptionItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+class PrescriptionItem(UUIDPrimaryKeyMixin, DataModeScopedMixin, TimestampMixin, Base):
     __tablename__ = "prescription_items"
 
     prescription_id: Mapped[UUID] = mapped_column(
